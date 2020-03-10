@@ -262,7 +262,7 @@ public class InCallManagerModule extends ReactContextBaseJavaModule implements L
         if (isOrigAudioSetupStored) {
             setSpeakerphoneOn(origIsSpeakerPhoneOn);
             setMicrophoneMute(origIsMicrophoneMute);
-            audioManager.setMode(origAudioMode);
+            audioManager.setMode(AudioManager.MODE_NORMAL);
             if (getCurrentActivity() != null) {
                 getCurrentActivity().setVolumeControlStream(AudioManager.USE_DEFAULT_STREAM_TYPE);
             }
