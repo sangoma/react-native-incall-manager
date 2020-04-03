@@ -1301,7 +1301,6 @@ public class InCallManagerModule extends ReactContextBaseJavaModule implements L
                 }
 
                 if (tg != null) {
-//                  synchronized (this) {
                         if (!playing) {
                             playing = true;
 
@@ -1325,7 +1324,6 @@ public class InCallManagerModule extends ReactContextBaseJavaModule implements L
                         }
                         playing = false;
                         tg.release();
-//                  }
                 }
             }
             Log.d(TAG, "MyToneGenerator(): play finished. caller=" + caller);
