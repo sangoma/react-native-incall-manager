@@ -1291,40 +1291,39 @@ public class InCallManagerModule extends ReactContextBaseJavaModule implements L
                     toneWaitTimeMs = customWaitTimeMs;
             }
             Log.d(TAG, String.format("myToneGenerator: toneCategory: %d ,toneType: %d, toneWaitTimeMs: %d", toneCategory, toneType, toneWaitTimeMs));
+            synchronized (this) {
+                ToneGenerator tg;
+                try {
+                    tg = new ToneGenerator(AudioManager.STREAM_VOICE_CALL, toneVolume);
+                } catch (RuntimeException e) {
+                    Log.d(TAG, "myToneGenerator: Exception caught while creating ToneGenerator: " + e);
+                    tg = null;
+                }
 
-            ToneGenerator tg;
-            try {
-                tg = new ToneGenerator(AudioManager.STREAM_VOICE_CALL, toneVolume);
-            } catch (RuntimeException e) {
-                Log.d(TAG, "myToneGenerator: Exception caught while creating ToneGenerator: " + e);
-                tg = null;
-            }
+                if (tg != null) {
+                        if (!playing) {
+                            playing = true;
 
-            if (tg != null) {
-                synchronized (this) {
-                    if (!playing) {
-                        playing = true;
+                            // --- make sure audio routing, or it will be wired when switch suddenly
+                            if (caller.equals("mBusytone")) {
+                                audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+                            } else if (caller.equals("mRingback")) {
+                                audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+                            } else if (caller.equals("mRingtone")) {
+                                audioManager.setMode(AudioManager.MODE_RINGTONE);
+                            } 
+                            InCallManagerModule.this.updateAudioRoute();
 
-                        // --- make sure audio routing, or it will be wired when switch suddenly
-                        if (caller.equals("mBusytone")) {
-                            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
-                        } else if (caller.equals("mRingback")) {
-                            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
-                        } else if (caller.equals("mRingtone")) {
-                            audioManager.setMode(AudioManager.MODE_RINGTONE);
-                        } 
-                        InCallManagerModule.this.updateAudioRoute();
-
-                        tg.startTone(toneType);
-                        try {
-                            wait(toneWaitTimeMs + loadBufferWaitTimeMs);
-                        } catch  (InterruptedException e) {
-                            Log.d(TAG, "myToneGenerator stopped. toneType: " + toneType);
+                            tg.startTone(toneType);
+                            try {
+                                wait(toneWaitTimeMs + loadBufferWaitTimeMs);
+                            } catch  (InterruptedException e) {
+                                Log.d(TAG, "myToneGenerator stopped. toneType: " + toneType);
+                            }
+                            tg.stopTone();
                         }
-                        tg.stopTone();
-                    }
-                    playing = false;
-                    tg.release();
+                        playing = false;
+                        tg.release();
                 }
             }
             Log.d(TAG, "MyToneGenerator(): play finished. caller=" + caller);
